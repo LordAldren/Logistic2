@@ -1,7 +1,7 @@
 <?php
 // ... existing code ... */
     $conn->close();
-}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
