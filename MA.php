@@ -16,9 +16,10 @@ $driver_id = $driver_id_result->num_rows > 0 ? $driver_id_result->fetch_assoc()[
 // Handle Send Message
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_message'])) {
     $message_text = $_POST['message_text'];
-    // If admin is sending, receiver is the driver. If driver is sending, receiver is admin.
-    $sender_id = $_SESSION['role'] === 'admin' ? $admin_id : $user_id;
-    $receiver_id = $_SESSION['role'] === 'admin' ? $_POST['receiver_id'] : $admin_id; // Need to specify receiver if admin
+    $is_admin_sending = $_SESSION['role'] === 'admin';
+    
+    $sender_id = $user_id;
+    $receiver_id = $is_admin_sending ? $_POST['receiver_id'] : $admin_id; 
     
     if (!empty($message_text) && !empty($receiver_id)) {
         $sql = "INSERT INTO messages (sender_id, receiver_id, message_text) VALUES (?, ?, ?)";
@@ -60,7 +61,7 @@ if ($_SESSION['role'] === 'driver' && $driver_id) {
     $driver_info = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
-    $trip_summary_sql = "SELECT t.trip_code, t.destination, t.start_time, t.eta, t.status FROM trips t WHERE t.driver_id = ? AND t.status IN ('En Route', 'Scheduled') ORDER BY t.pickup_time DESC LIMIT 1";
+    $trip_summary_sql = "SELECT t.trip_code, t.destination, t.pickup_time, t.eta, t.status FROM trips t WHERE t.driver_id = ? AND t.status IN ('En Route', 'Scheduled') ORDER BY t.pickup_time DESC LIMIT 1";
     $stmt = $conn->prepare($trip_summary_sql);
     $stmt->bind_param("i", $driver_id);
     $stmt->execute();
@@ -110,11 +111,13 @@ $active_drivers = $conn->query("SELECT d.id, d.name, u.id as user_id FROM driver
       </div>
     </div>
     
+    <a href="mobile_app.php" class="btn btn-primary" style="margin-bottom: 1.5rem; text-align: center;">Open Mobile App Simulation</a>
+
     <?php echo $message; ?>
 
     <div class="grid-container">
       <div class="card">
-        <h3>Driver App Dashboard (Phone View)</h3>
+        <h3>Driver App Dashboard (Desktop View)</h3>
         <?php if ($_SESSION['role'] === 'driver'): ?>
             <div class="card" style="margin-top: 1rem;">
               <?php if ($driver_info): ?>
@@ -129,7 +132,7 @@ $active_drivers = $conn->query("SELECT d.id, d.name, u.id as user_id FROM driver
                 <h4>Today's Trip Summary</h4>
                 <?php if ($trip_summary): ?>
                 <p><strong>Trip ID:</strong> <?php echo htmlspecialchars($trip_summary['trip_code']); ?> | <strong>Destination:</strong> <?php echo htmlspecialchars($trip_summary['destination']); ?></p>
-                <p><strong>Start:</strong> <?php echo htmlspecialchars(date('h:i A', strtotime($trip_summary['start_time']))); ?> | <strong>ETA:</strong> <?php echo htmlspecialchars(date('h:i A', strtotime($trip_summary['eta']))); ?></p>
+                <p><strong>Pickup:</strong> <?php echo htmlspecialchars(date('h:i A', strtotime($trip_summary['pickup_time']))); ?> | <strong>ETA:</strong> <?php echo htmlspecialchars($trip_summary['eta'] ? date('h:i A', strtotime($trip_summary['eta'])) : 'N/A'); ?></p>
                 <p><strong>Current Status:</strong> <span class="status-badge status-<?php echo strtolower(str_replace(' ', '.', $trip_summary['status'])); ?>"><?php echo htmlspecialchars($trip_summary['status']); ?></span></p>
                 <?php else: ?><p>No active trip assigned.</p><?php endif; ?>
             </div>
@@ -150,15 +153,18 @@ $active_drivers = $conn->query("SELECT d.id, d.name, u.id as user_id FROM driver
                 <table>
                     <thead><tr><th>Vehicle</th><th>Driver</th><th>Status</th><th>Location</th></tr></thead>
                     <tbody>
-                        <?php mysqli_data_seek($live_trips_result, 0); ?>
+                        <?php if($live_trips_result->num_rows > 0): mysqli_data_seek($live_trips_result, 0); ?>
                         <?php while($trip = $live_trips_result->fetch_assoc()): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($trip['vehicle_type'] . ' ' . $trip['model']); ?></td>
                             <td><?php echo htmlspecialchars($trip['driver_name']); ?></td>
                             <td><span class="status-badge status-<?php echo strtolower(str_replace(' ', '.', $trip['status'])); ?>"><?php echo htmlspecialchars($trip['status']); ?></span></td>
-                            <td><?php echo htmlspecialchars($trip['current_location']); ?></td>
+                            <td><?php echo htmlspecialchars($trip['current_location'] ?? 'N/A'); ?></td>
                         </tr>
                         <?php endwhile; ?>
+                        <?php else: ?>
+                        <tr><td colspan="4">No live trips.</td></tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -171,19 +177,22 @@ $active_drivers = $conn->query("SELECT d.id, d.name, u.id as user_id FROM driver
         <?php endif; ?>
       </div>
 
-      <div class="card">
+      <div class="card" id="messaging">
         <h3>Messaging & Alert System</h3>
         <div class="chat-box" style="margin-top: 1rem;">
-            <?php mysqli_data_seek($messages_result, 0); ?>
+            <?php if($messages_result->num_rows > 0): mysqli_data_seek($messages_result, 0); ?>
             <?php while($msg = $messages_result->fetch_assoc()): ?>
                 <div class="message"><strong><?php echo htmlspecialchars(ucfirst($msg['sender'])); ?>:</strong> <?php echo htmlspecialchars($msg['message_text']); ?> <small style="float: right; color: #888;"><?php echo htmlspecialchars(date('h:i A', strtotime($msg['sent_at']))); ?></small></div>
             <?php endwhile; ?>
+            <?php else: ?>
+            <p style="text-align:center; color:#888;">No messages yet.</p>
+            <?php endif; ?>
         </div>
         <form action="MA.php" method="POST" class="chat-input">
             <?php if ($_SESSION['role'] === 'admin'): ?>
             <select name="receiver_id" required style="flex-grow: 0.5;">
                 <option value="">To Driver:</option>
-                <?php while($driver = $active_drivers->fetch_assoc()): ?>
+                <?php mysqli_data_seek($active_drivers, 0); while($driver = $active_drivers->fetch_assoc()): ?>
                 <option value="<?php echo $driver['user_id']; ?>"><?php echo htmlspecialchars($driver['name']); ?></option>
                 <?php endwhile; ?>
             </select>
@@ -210,7 +219,7 @@ $active_drivers = $conn->query("SELECT d.id, d.name, u.id as user_id FROM driver
             <table>
                 <thead><tr><th>Time</th><th>Driver</th><th>Description</th><th>Status</th></tr></thead>
                 <tbody>
-                    <?php mysqli_data_seek($sos_alerts_result, 0); ?>
+                    <?php if($sos_alerts_result->num_rows > 0): mysqli_data_seek($sos_alerts_result, 0); ?>
                     <?php while($alert = $sos_alerts_result->fetch_assoc()): ?>
                     <tr>
                         <td><?php echo htmlspecialchars(date('h:i A', strtotime($alert['created_at']))); ?></td>
@@ -219,6 +228,9 @@ $active_drivers = $conn->query("SELECT d.id, d.name, u.id as user_id FROM driver
                         <td><span class="status-badge status-<?php echo strtolower($alert['status']); ?>"><?php echo htmlspecialchars($alert['status']); ?></span></td>
                     </tr>
                     <?php endwhile; ?>
+                    <?php else: ?>
+                    <tr><td colspan="4">No SOS alerts.</td></tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -257,7 +269,6 @@ $active_drivers = $conn->query("SELECT d.id, d.name, u.id as user_id FROM driver
     closeBtn.onclick = function() { modal.style.display = "none"; }
     window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } }
 
-    // --- Button Actions ---
     const checkInBtn = document.getElementById('checkInBtn');
     if(checkInBtn) checkInBtn.onclick = () => showModal("Check-In", "<p>Driver has been checked in for the day.</p>");
     
@@ -265,10 +276,10 @@ $active_drivers = $conn->query("SELECT d.id, d.name, u.id as user_id FROM driver
     if(checkOutBtn) checkOutBtn.onclick = () => showModal("Check-Out", "<p>Driver has been checked out.</p>");
 
     const assignTripBtn = document.getElementById('assignTripBtn');
-    if(assignTripBtn) assignTripBtn.onclick = () => showModal("Assign Trip", "<p>Redirecting to Trip Scheduling page to assign a new trip...</p>");
+    if(assignTripBtn) assignTripBtn.onclick = () => { window.location.href = 'VRDS.php'; };
 
     const viewRouteBtn = document.getElementById('viewRouteBtn');
-    if(viewRouteBtn) viewRouteBtn.onclick = () => showModal("View Route", "<p>Opening live map to view all active routes...</p>");
+    if(viewRouteBtn) viewRouteBtn.onclick = () => { window.location.href = 'DTPM.php'; };
 
     const sendSosBtn = document.getElementById('sendSosBtn');
     if(sendSosBtn) sendSosBtn.onclick = () => {

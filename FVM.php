@@ -5,6 +5,12 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
+// Role-based Access Control: Bawal ang drivers dito.
+if ($_SESSION['role'] === 'driver') {
+    header("location: mobile_app.php");
+    exit;
+}
+
 require_once 'db_connect.php';
 $message = '';
 
@@ -200,11 +206,17 @@ $all_vehicles = $conn->query("SELECT id, type, model FROM vehicles ORDER BY type
   <div class="sidebar" id="sidebar">
     <div class="logo"><img src="logo.png" alt="SLATE Logo"></div>
     <div class="system-name">LOGISTIC 2</div>
+
+    <?php $role = $_SESSION['role']; ?>
     <a href="landpage.php">Dashboard</a>
-    <a href="FVM.php" class="active">Fleet & Vehicle Management (FVM)</a>
-    <a href="VRDS.php">Vehicle Reservation & Dispatch System (VRDS)</a>
-    <a href="DTPM.php">Driver and Trip Performance Monitoring</a>
-    <a href="TCAO.php">Transport Cost Analysis & Optimization (TCAO)</a>
+
+    <?php if ($role === 'admin' || $role === 'staff'): ?>
+        <a href="FVM.php" class="active">Fleet & Vehicle Management (FVM)</a>
+        <a href="VRDS.php">Vehicle Reservation & Dispatch System (VRDS)</a>
+        <a href="DTPM.php">Driver and Trip Performance Monitoring</a>
+        <a href="TCAO.php">Transport Cost Analysis & Optimization (TCAO)</a>
+    <?php endif; ?>
+    
     <a href="MA.php">Mobile Fleet Command App</a>
     <a href="logout.php">Logout</a>
   </div>
@@ -275,7 +287,7 @@ $all_vehicles = $conn->query("SELECT id, type, model FROM vehicles ORDER BY type
       <table>
         <thead><tr><th>Vehicle</th><th>Task</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
-            <?php if($maintenance_result->num_rows > 0): ?>
+            <?php if($maintenance_result->num_rows > 0): mysqli_data_seek($maintenance_result, 0); ?>
                 <?php while($row = $maintenance_result->fetch_assoc()): ?>
                 <tr>
                     <td><?php echo htmlspecialchars($row['type'] . ' ' . $row['model']); ?></td>
@@ -306,7 +318,7 @@ $all_vehicles = $conn->query("SELECT id, type, model FROM vehicles ORDER BY type
       <table>
         <thead><tr><th>Vehicle</th><th>Registration Exp.</th><th>Insurance Exp.</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
-            <?php if($compliance_result->num_rows > 0): ?>
+            <?php if($compliance_result->num_rows > 0): mysqli_data_seek($compliance_result, 0); ?>
                <?php while($row = $compliance_result->fetch_assoc()): ?>
                 <tr>
                     <td><?php echo htmlspecialchars($row['type'] . ' ' . $row['model']); ?></td>
@@ -402,7 +414,6 @@ $all_vehicles = $conn->query("SELECT id, type, model FROM vehicles ORDER BY type
     </div>
      
   <script>
-    // --- Basic Setup ---
     document.getElementById('themeToggle').addEventListener('change', function() { document.body.classList.toggle('dark-mode', this.checked); });
     document.getElementById('hamburger').addEventListener('click', function() {
       const sidebar = document.getElementById('sidebar');
@@ -411,7 +422,6 @@ $all_vehicles = $conn->query("SELECT id, type, model FROM vehicles ORDER BY type
       else { sidebar.classList.toggle('collapsed'); mainContent.classList.toggle('expanded'); }
     });
 
-    // --- Generic Modal Closer ---
     document.querySelectorAll('.modal').forEach(modal => {
         const closeBtn = modal.querySelector('.close-button');
         const cancelBtn = modal.querySelector('.cancelBtn');
@@ -420,7 +430,6 @@ $all_vehicles = $conn->query("SELECT id, type, model FROM vehicles ORDER BY type
         window.addEventListener('click', (event) => { if (event.target == modal) { modal.style.display = 'none'; } });
     });
 
-    // --- Vehicle Modal Logic ---
     const vehicleModal = document.getElementById('vehicleModal');
     document.getElementById('addVehicleBtn').addEventListener('click', () => {
       vehicleModal.querySelector('form').reset();
@@ -445,7 +454,6 @@ $all_vehicles = $conn->query("SELECT id, type, model FROM vehicles ORDER BY type
       });
     });
     
-    // --- Schedule Modal Logic ---
     const scheduleModal = document.getElementById('scheduleModal');
     document.getElementById('addScheduleBtn').addEventListener('click', () => {
       scheduleModal.querySelector('form').reset();
@@ -467,7 +475,6 @@ $all_vehicles = $conn->query("SELECT id, type, model FROM vehicles ORDER BY type
       });
     });
     
-    // --- Compliance Modal Logic ---
     const complianceModal = document.getElementById('complianceModal');
     document.getElementById('addComplianceBtn').addEventListener('click', () => {
       complianceModal.querySelector('form').reset();
@@ -491,7 +498,3 @@ $all_vehicles = $conn->query("SELECT id, type, model FROM vehicles ORDER BY type
   </script>
 </body>
 </html>
-
-
-
-

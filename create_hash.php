@@ -9,7 +9,7 @@ $passwordToHash = 'supotako';
 $hashedPassword = password_hash($passwordToHash, PASSWORD_DEFAULT);
 $passwordToHash = 'password123';
 $hashedPassword = password_hash($passwordToHash, PASSWORD_DEFAULT);
-$passwordToHash = 'cute123';
+$passwordToHash = 'poginaman';
 $hashedPassword = password_hash($passwordToHash, PASSWORD_DEFAULT);
 
 echo "<h1>Password Hash Generator</h1>";
