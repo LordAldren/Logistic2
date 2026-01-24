@@ -3,19 +3,23 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 20, 2025 at 03:23 AM
+-- Generation Time: Jan 24, 2026 at 09:28 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
-SET time_zone = "+08:00";
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Database: `logistics_db`
 --
-CREATE DATABASE IF NOT EXISTS `logistics_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `logistics_db`;
 
 -- --------------------------------------------------------
 
@@ -33,6 +37,35 @@ CREATE TABLE `alerts` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `alerts`
+--
+
+INSERT INTO `alerts` (`id`, `trip_id`, `driver_id`, `alert_type`, `description`, `status`, `created_at`) VALUES
+(1, 1, 2, 'SOS', 'Minor accident on EDSA. No injuries, but vehicle is stopped.', 'Pending', '2025-10-28 01:30:00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `budgets`
+--
+
+CREATE TABLE `budgets` (
+  `id` int(11) NOT NULL,
+  `budget_title` varchar(255) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `amount` decimal(12,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `budgets`
+--
+
+INSERT INTO `budgets` (`id`, `budget_title`, `start_date`, `end_date`, `amount`, `created_at`) VALUES
+(1, 'October 2025 Operations Budget', '2025-10-01', '2025-10-31', 250000.00, '2025-10-01 00:00:00');
+
 -- --------------------------------------------------------
 
 --
@@ -44,6 +77,9 @@ CREATE TABLE `drivers` (
   `user_id` int(11) DEFAULT NULL,
   `name` varchar(100) NOT NULL,
   `license_number` varchar(50) NOT NULL,
+  `license_expiry_date` date DEFAULT NULL,
+  `contact_number` varchar(20) DEFAULT NULL,
+  `date_joined` date DEFAULT NULL,
   `status` enum('Active','Suspended','Inactive','Pending') NOT NULL DEFAULT 'Pending',
   `rating` decimal(3,1) DEFAULT 0.0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -53,9 +89,80 @@ CREATE TABLE `drivers` (
 -- Dumping data for table `drivers`
 --
 
-INSERT INTO `drivers` (`id`, `user_id`, `name`, `license_number`, `status`, `rating`, `created_at`) VALUES
-(1, 2, 'J. Cruz', 'D01-23-456789', 'Active', 4.5, '2025-09-18 08:55:18'),
-(2, 3, 'S. Tan', 'D02-34-567890', 'Active', 4.2, '2025-09-18 08:55:18');
+INSERT INTO `drivers` (`id`, `user_id`, `name`, `license_number`, `license_expiry_date`, `contact_number`, `date_joined`, `status`, `rating`, `created_at`) VALUES
+(1, 3, 'John Doe', 'D01-23-456789', '2028-05-20', '09171234567', '2023-01-15', 'Active', 4.8, '2025-10-26 18:01:00'),
+(2, 4, 'Jane Smith', 'D02-34-567890', '2026-11-30', '09182345678', '2023-03-22', 'Active', 4.9, '2025-10-26 18:02:00'),
+(3, 5, 'Peter Jones', 'D03-45-678901', '2027-08-10', '09283456789', '2024-06-01', 'Active', 4.5, '2025-10-26 18:03:00'),
+(4, NULL, 'Robert Williams', 'D04-11-223344', '2029-01-15', '09194567890', '2024-08-01', 'Active', 4.6, '2025-10-26 18:04:00'),
+(5, NULL, 'Maria Garcia', 'D05-22-334455', '2028-03-12', '09275678901', '2024-09-10', 'Active', 4.7, '2025-10-26 18:05:00'),
+(6, 8, 'New Applicant Driver', 'D04-56-789012', '2029-01-01', '09123456789', '2025-10-27', 'Pending', 0.0, '2025-10-26 18:06:00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `driver_behavior_logs`
+--
+
+CREATE TABLE `driver_behavior_logs` (
+  `id` int(11) NOT NULL,
+  `driver_id` int(11) NOT NULL,
+  `trip_id` int(11) DEFAULT NULL,
+  `log_date` date NOT NULL,
+  `overspeeding_count` int(11) NOT NULL DEFAULT 0,
+  `harsh_braking_count` int(11) NOT NULL DEFAULT 0,
+  `idle_duration_minutes` int(11) NOT NULL DEFAULT 0,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `driver_behavior_logs`
+--
+
+INSERT INTO `driver_behavior_logs` (`id`, `driver_id`, `trip_id`, `log_date`, `overspeeding_count`, `harsh_braking_count`, `idle_duration_minutes`, `notes`, `created_at`) VALUES
+(1, 1, 3, '2025-10-20', 3, 1, 15, 'Overspeeding incidents detected on SLEX.', '2025-10-20 04:00:00'),
+(2, 2, 1, '2025-10-28', 1, 5, 25, 'Multiple harsh braking events in city traffic.', '2025-10-28 04:01:00'),
+(3, 3, 6, '2025-10-02', 0, 2, 10, 'Harsh braking near construction site.', '2025-10-02 04:02:00'),
+(4, 4, 8, '2025-10-04', 0, 0, 5, 'Smooth driving reported.', '2025-10-04 04:03:00'),
+(5, 5, 9, '2025-10-05', 2, 3, 30, 'Overspeeding and idle time in Greenhills area.', '2025-10-05 04:04:00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `events`
+--
+
+CREATE TABLE `events` (
+  `id` int(11) NOT NULL,
+  `aggregate_id` int(11) NOT NULL,
+  `event_type` varchar(255) NOT NULL,
+  `event_payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`event_payload`)),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `expenses`
+--
+
+CREATE TABLE `expenses` (
+  `id` int(11) NOT NULL,
+  `expense_category` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `expense_date` date NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `expenses`
+--
+
+INSERT INTO `expenses` (`id`, `expense_category`, `description`, `amount`, `expense_date`, `created_at`) VALUES
+(1, 'Fuel', 'Diesel for all trucks - Week 1', 35000.00, '2025-10-07', '2025-10-07 01:00:00'),
+(2, 'Maintenance', 'Preventive Maintenance for ELF001', 15000.00, '2025-10-15', '2025-10-15 01:01:00'),
+(3, 'Salaries', 'Driver Salaries - First Half', 80000.00, '2025-10-15', '2025-10-15 01:02:00');
 
 -- --------------------------------------------------------
 
@@ -68,7 +175,7 @@ CREATE TABLE `maintenance_approvals` (
   `vehicle_id` int(11) NOT NULL,
   `arrival_date` date NOT NULL,
   `date_of_return` date DEFAULT NULL,
-  `status` enum('Pending','Approved','In Progress','Completed','Rejected') NOT NULL DEFAULT 'Pending',
+  `status` enum('Pending','Approved','On-Queue','Completed','Rejected') NOT NULL DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -77,11 +184,8 @@ CREATE TABLE `maintenance_approvals` (
 --
 
 INSERT INTO `maintenance_approvals` (`id`, `vehicle_id`, `arrival_date`, `date_of_return`, `status`, `created_at`) VALUES
-(1, 1, '2025-09-15', '2025-09-18', 'Completed', '2025-09-19 18:10:10'),
-(2, 3, '2025-09-20', NULL, 'In Progress', '2025-09-19 18:10:10'),
-(3, 2, '2025-09-22', NULL, 'Approved', '2025-09-19 18:11:15'),
-(4, 5, '2025-09-25', NULL, 'Pending', '2025-09-19 18:11:15');
-
+(1, 4, '2025-10-25', '2025-10-28', 'Completed', '2025-10-25 03:00:00'),
+(2, 1, '2025-11-01', NULL, 'Pending', '2025-10-27 03:01:00');
 
 -- --------------------------------------------------------
 
@@ -97,6 +201,14 @@ CREATE TABLE `messages` (
   `sent_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `is_read` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `messages`
+--
+
+INSERT INTO `messages` (`id`, `sender_id`, `receiver_id`, `message_text`, `sent_at`, `is_read`) VALUES
+(1, 1, 3, 'John, please check your schedule for tomorrow. New trip assigned.', '2025-10-27 07:00:00', 1),
+(2, 3, 1, 'Copy, admin. Saw it. Will prepare accordingly.', '2025-10-27 07:05:00', 0);
 
 -- --------------------------------------------------------
 
@@ -127,25 +239,28 @@ CREATE TABLE `reservations` (
   `purpose` text DEFAULT NULL,
   `reservation_date` date NOT NULL,
   `status` enum('Confirmed','Pending','Cancelled','Rejected') NOT NULL DEFAULT 'Pending',
+  `load_capacity_needed` int(11) DEFAULT NULL,
+  `destination_address` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
 --
--- Table structure for table `routes`
+-- Dumping data for table `reservations`
 --
 
-CREATE TABLE `routes` (
-  `id` int(11) NOT NULL,
-  `trip_id` int(11) DEFAULT NULL,
-  `route_name` varchar(255) NOT NULL,
-  `distance_km` decimal(10,2) NOT NULL,
-  `estimated_time` varchar(50) NOT NULL,
-  `estimated_cost` decimal(10,2) NOT NULL,
-  `status` varchar(50) DEFAULT 'Recommended',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+INSERT INTO `reservations` (`id`, `reservation_code`, `client_name`, `vehicle_id`, `reserved_by_user_id`, `purpose`, `reservation_date`, `status`, `load_capacity_needed`, `destination_address`, `created_at`) VALUES
+(1, 'R20251027001', 'ABC Corporation', 2, 2, 'Urgent delivery of documents.', '2025-10-28', 'Confirmed', 50, 'Makati City Hall, Makati', '2025-10-26 21:01:00'),
+(2, 'R20251027002', 'XYZ Logistics', 1, 2, 'Pickup of cargo from port area.', '2025-10-29', 'Confirmed', 4000, 'Manila Port Area, Manila', '2025-10-26 21:02:00'),
+(3, 'R20251027003', 'Sample Client Inc.', NULL, 2, 'Awaiting vehicle assignment for electronics transport.', '2025-10-30', 'Confirmed', 2000, 'Technohub, Quezon City', '2025-10-26 21:03:00'),
+(4, 'R20251027004', 'Past Delivery Co.', 3, 2, 'Completed delivery last week.', '2025-10-20', 'Confirmed', 3500, 'Laguna Technopark, Biñan, Laguna', '2025-10-19 21:04:00'),
+(5, 'R20251027005', 'Cancelled Booking', 1, 2, 'Client cancelled due to schedule changes.', '2025-11-05', 'Cancelled', 1500, 'SM Megamall, Mandaluyong', '2025-10-26 21:05:00'),
+(6, 'R20260123124636', 'rovic', 1, 2, 'pwede pakibilisan', '2026-01-24', 'Cancelled', 5000, 'SM North Edsa, Quezon City', '2026-01-23 11:46:36'),
+(7, 'R20260123125803', 'rovic', NULL, 2, 'pabilis', '2026-01-23', 'Confirmed', 5000, 'Sm North Edsa, Quezon City', '2026-01-23 11:58:03'),
+(8, 'R20260123145439', 'iiii', 5, 2, 'asdasasd', '2026-01-23', 'Confirmed', 666, 'Sm North Edsa, Quezon City', '2026-01-23 13:54:39'),
+(11, 'R20260123150615', 'poqe', 13, 2, 'dasdasdasd', '2026-01-23', 'Confirmed', 123123, 'Sm Fairview, Quezon city', '2026-01-23 14:06:15'),
+(12, 'R20260123152236', 'qqweqwe', 13, 2, 'iokqwe', '2026-01-23', 'Confirmed', 5555, 'Fairview, Quezin City', '2026-01-23 14:22:36'),
+(13, 'R20260123152635', 'hiii', 5, 2, 'qweqwe', '2026-01-23', 'Confirmed', 5000, 'Sm North Edsa, Quezon City', '2026-01-23 14:26:35'),
+(14, 'R20260123153958', 'maurel', 13, 2, 'pok', '2026-01-23', 'Cancelled', 5000, 'Sm North Edsa', '2026-01-23 14:39:58');
 
 -- --------------------------------------------------------
 
@@ -163,6 +278,28 @@ CREATE TABLE `tracking_log` (
   `log_time` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `tracking_log`
+--
+
+INSERT INTO `tracking_log` (`id`, `trip_id`, `latitude`, `longitude`, `speed_mph`, `status_message`, `log_time`) VALUES
+(1, 1, 14.60910000, 121.02230000, 30, 'Departed from origin', '2025-10-28 01:05:00'),
+(2, 1, 14.58290000, 121.03000000, 25, 'On EDSA, moderate traffic', '2025-10-28 01:20:00'),
+(3, 1, 14.55470000, 121.02440000, 15, 'Approaching Ayala Avenue', '2025-10-28 01:45:00'),
+(4, 2, 14.65709260, 121.03131770, 0, 'Trip Started', '2026-01-23 14:07:44'),
+(5, 2, 0.00000000, 0.00000000, 0, 'Arrived', '2026-01-23 14:08:02'),
+(6, 2, 0.00000000, 0.00000000, 0, 'Departed', '2026-01-23 14:08:07'),
+(7, 2, 0.00000000, 0.00000000, 0, 'Arrived', '2026-01-23 14:08:10'),
+(8, 2, 14.65709260, 121.03131770, 0, 'Trip Started', '2026-01-23 14:10:04'),
+(9, 30, 14.72969950, 121.06078170, 0, 'Trip Started', '2026-01-23 14:11:30'),
+(10, 2, 0.00000000, 0.00000000, 0, 'Arrived', '2026-01-23 14:11:44'),
+(11, 30, 14.72969950, 121.06078170, 0, 'Trip Started', '2026-01-23 14:14:59'),
+(12, 30, 0.00000000, 0.00000000, 0, 'Arrived', '2026-01-23 14:24:20'),
+(13, 34, 14.65709260, 121.03131770, 0, 'Trip Started', '2026-01-23 14:27:31'),
+(14, 34, 0.00000000, 0.00000000, 0, 'Arrived', '2026-01-23 14:27:41'),
+(15, 34, 14.65709260, 121.03131770, 0, 'Trip Started', '2026-01-23 14:28:16'),
+(16, 34, 0.00000000, 0.00000000, 0, 'Arrived', '2026-01-24 01:15:50');
+
 -- --------------------------------------------------------
 
 --
@@ -171,18 +308,58 @@ CREATE TABLE `tracking_log` (
 
 CREATE TABLE `trips` (
   `id` int(11) NOT NULL,
+  `reservation_id` int(11) DEFAULT NULL,
   `trip_code` varchar(20) NOT NULL,
   `vehicle_id` int(11) NOT NULL,
   `driver_id` int(11) NOT NULL,
   `client_name` varchar(255) DEFAULT NULL,
   `pickup_time` datetime NOT NULL,
   `destination` varchar(255) NOT NULL,
-  `status` enum('Scheduled','Completed','Cancelled','En Route','Breakdown','Idle') NOT NULL DEFAULT 'Scheduled',
+  `status` enum('Scheduled','Completed','Cancelled','En Route','Breakdown','Idle','Arrived at Destination','Unloading') NOT NULL DEFAULT 'Scheduled',
   `current_location` varchar(255) DEFAULT NULL,
   `eta` datetime DEFAULT NULL,
   `start_time` time DEFAULT NULL,
+  `proof_of_delivery_path` varchar(255) DEFAULT NULL,
+  `delivery_notes` text DEFAULT NULL,
+  `route_adherence_score` decimal(5,2) DEFAULT 100.00,
+  `route_deviations` int(11) DEFAULT 0,
+  `actual_arrival_time` datetime DEFAULT NULL,
+  `arrival_status` enum('Pending','On-Time','Early','Late') NOT NULL DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trips`
+--
+
+INSERT INTO `trips` (`id`, `reservation_id`, `trip_code`, `vehicle_id`, `driver_id`, `client_name`, `pickup_time`, `destination`, `status`, `current_location`, `eta`, `start_time`, `proof_of_delivery_path`, `delivery_notes`, `route_adherence_score`, `route_deviations`, `actual_arrival_time`, `arrival_status`, `created_at`) VALUES
+(1, 1, 'T20251028001', 2, 2, 'ABC Corporation', '2025-10-28 09:00:00', 'Makati City Hall, Makati', 'En Route', NULL, NULL, NULL, NULL, NULL, 98.50, 1, NULL, 'Pending', '2025-10-26 22:01:00'),
+(2, 2, 'T20251029002', 1, 1, 'XYZ Logistics', '2025-10-29 08:00:00', 'Manila Port Area, Manila', 'Completed', NULL, NULL, NULL, 'modules/mfc/uploads/pod/1769177582_RENEL DAY 1.jpg', 'qweqw', 100.00, 0, '2026-01-23 22:13:02', 'Pending', '2025-10-26 22:02:00'),
+(3, 4, 'T20251020003', 3, 4, 'Past Delivery Co.', '2025-10-20 10:00:00', 'Laguna Technopark, Biñan, Laguna', 'Completed', NULL, NULL, NULL, 'uploads/pod/sample_pod.jpg', 'Received by accounting department.', 95.00, 3, '2025-10-20 11:55:00', 'Early', '2025-10-19 22:03:00'),
+(4, 5, 'T20251105004', 1, 3, 'Cancelled Booking', '2025-11-05 13:00:00', 'SM Megamall, Mandaluyong', 'Cancelled', NULL, NULL, NULL, NULL, 'Client request.', 100.00, 0, NULL, 'Pending', '2025-10-26 22:04:00'),
+(5, NULL, 'T20251001005', 1, 1, 'PharmaServe Inc.', '2025-10-01 08:00:00', 'St. Lukes Medical Center, Quezon City', 'Completed', NULL, NULL, NULL, NULL, 'Medical supplies delivered.', 100.00, 0, '2025-10-01 09:30:00', 'On-Time', '2025-09-30 22:05:00'),
+(6, NULL, 'T20251002006', 3, 3, 'BuildRight Hardware', '2025-10-02 10:00:00', 'Construction Site, Taguig', 'Completed', NULL, NULL, NULL, NULL, 'Construction materials unloaded.', 97.00, 2, '2025-10-02 11:45:00', 'Early', '2025-10-01 22:06:00'),
+(7, NULL, 'T20251003007', 2, 2, 'FreshFoods Corp.', '2025-10-03 05:00:00', 'Farmers Market, Cubao', 'Completed', NULL, NULL, NULL, NULL, 'Perishables delivered.', 99.00, 1, '2025-10-03 06:15:00', 'On-Time', '2025-10-02 22:07:00'),
+(8, NULL, 'T20251004008', 5, 4, 'TechGiant Electronics', '2025-10-04 13:00:00', 'Cyberpark, Araneta City', 'Completed', NULL, NULL, NULL, NULL, 'Server equipment delivered.', 100.00, 0, '2025-10-04 14:00:00', 'On-Time', '2025-10-03 22:08:00'),
+(9, NULL, 'T20251005009', 1, 5, 'Metro Apparels', '2025-10-05 09:30:00', 'Greenhills Shopping Center', 'Completed', NULL, NULL, NULL, NULL, 'Textile rolls received.', 96.50, 3, '2025-10-05 11:00:00', 'Late', '2025-10-04 22:09:00'),
+(10, NULL, 'T20251006010', 3, 1, 'AgriProduce Co.', '2025-10-06 04:00:00', 'Balintawak Market, Quezon City', 'Completed', NULL, NULL, NULL, NULL, 'Vegetable crates delivered.', 100.00, 0, '2025-10-06 05:00:00', 'Early', '2025-10-05 22:10:00'),
+(11, NULL, 'T20251007011', 2, 2, 'Corporate Solutions Ltd.', '2025-10-07 11:00:00', 'Ayala Avenue, Makati', 'Completed', NULL, NULL, NULL, NULL, 'Office documents delivered.', 98.00, 1, '2025-10-07 12:30:00', 'On-Time', '2025-10-06 22:11:00'),
+(12, NULL, 'T20251008012', 5, 3, 'HomeBuilders Depot', '2025-10-08 14:00:00', 'Warehouse, Valenzuela', 'Completed', NULL, NULL, NULL, NULL, 'Cement bags delivered.', 95.00, 4, '2025-10-08 16:00:00', 'Late', '2025-10-07 22:12:00'),
+(13, NULL, 'T20251009013', 1, 4, 'QuickMeds Pharmacy', '2025-10-09 08:30:00', 'Mercury Drug, Pasig', 'Completed', NULL, NULL, NULL, NULL, 'Medicine boxes delivered.', 100.00, 0, '2025-10-09 09:45:00', 'On-Time', '2025-10-08 22:13:00'),
+(14, NULL, 'T20251010014', 3, 5, 'National Bookstore', '2025-10-10 10:00:00', 'SM City North EDSA', 'Completed', NULL, NULL, NULL, NULL, 'Books and supplies delivered.', 99.50, 1, '2025-10-10 11:10:00', 'Early', '2025-10-09 22:14:00'),
+(15, NULL, 'T20251011015', 6, 1, 'FastDocs Courier', '2025-10-11 13:00:00', 'BGC, Taguig', 'Completed', NULL, NULL, NULL, NULL, 'Legal documents delivered.', 100.00, 0, '2025-10-11 14:00:00', 'On-Time', '2025-10-10 22:15:00'),
+(16, NULL, 'T20251012016', 1, 2, 'Cebu Pacific Cargo', '2025-10-12 20:00:00', 'NAIA Terminal 3', 'Completed', NULL, NULL, NULL, NULL, 'Air cargo delivered.', 97.00, 2, '2025-10-12 21:30:00', 'On-Time', '2025-10-11 22:16:00'),
+(17, NULL, 'T20251013017', 5, 3, 'San Miguel Corporation', '2025-10-13 07:00:00', 'SMC Complex, Ortigas', 'Completed', NULL, NULL, NULL, NULL, 'Product samples delivered.', 100.00, 0, '2025-10-13 07:45:00', 'Early', '2025-10-12 22:17:00'),
+(18, NULL, 'T20251014018', 3, 4, 'Lazada Warehouse', '2025-10-14 09:00:00', 'Cabuyao, Laguna', 'Completed', NULL, NULL, NULL, NULL, 'Online orders for dispatch.', 94.00, 5, '2025-10-14 11:30:00', 'Late', '2025-10-13 22:18:00'),
+(19, NULL, 'T20251015019', 2, 5, 'Philippine Red Cross', '2025-10-15 10:30:00', 'PRC Tower, Mandaluyong', 'Completed', NULL, NULL, NULL, NULL, 'Donation goods delivered.', 100.00, 0, '2025-10-15 11:15:00', 'On-Time', '2025-10-14 22:19:00'),
+(20, NULL, 'T20251016020', 1, 1, 'Jollibee Foods Corp.', '2025-10-16 03:00:00', 'Jollibee Plaza, Ortigas', 'Completed', NULL, NULL, NULL, NULL, 'Frozen goods delivered.', 100.00, 0, '2025-10-16 04:00:00', 'On-Time', '2025-10-15 22:20:00'),
+(28, 3, 'T20260123145306', 13, 1, 'Sample Client Inc.', '2025-10-30 08:00:00', 'Technohub, Quezon City', 'Scheduled', NULL, NULL, NULL, NULL, NULL, 100.00, 0, NULL, 'Pending', '2026-01-23 13:53:06'),
+(29, 7, 'T20260123145319', 13, 1, 'rovic', '2026-01-23 08:00:00', 'Sm North Edsa, Quezon City', 'Scheduled', NULL, NULL, NULL, NULL, NULL, 100.00, 0, NULL, 'Pending', '2026-01-23 13:53:19'),
+(30, 8, 'T20260123145457', 5, 1, 'iiii', '2026-01-23 08:00:00', 'Sm North Edsa, Quezon City', 'Completed', NULL, NULL, NULL, 'modules/mfc/uploads/pod/1769178279_alliah out day 2.jpg', 'sadasd', 100.00, 0, '2026-01-23 22:24:40', 'Pending', '2026-01-23 13:54:57'),
+(31, 11, 'T20260123150654', 13, 1, 'poqe', '2026-01-23 22:08:00', 'Sm Fairview, Quezon city', 'Scheduled', NULL, NULL, NULL, NULL, NULL, 100.00, 0, NULL, 'Pending', '2026-01-23 14:06:54'),
+(32, 12, 'T20260123152316', 13, 1, 'qqweqwe', '2026-01-23 22:24:00', 'Fairview, Quezin City', 'Scheduled', NULL, NULL, NULL, NULL, NULL, 100.00, 0, NULL, 'Pending', '2026-01-23 14:23:16'),
+(33, 12, 'T20260123152537', 13, 1, 'qqweqwe', '2026-01-23 22:27:00', 'Fairview, Quezin City', 'Scheduled', NULL, NULL, NULL, NULL, NULL, 100.00, 0, NULL, 'Pending', '2026-01-23 14:25:37'),
+(34, 13, 'T20260123152657', 5, 1, 'hiii', '2026-01-23 22:28:00', 'Sm North Edsa, Quezon City', 'Arrived at Destination', NULL, NULL, NULL, 'modules/mfc/uploads/pod/1769178475_lord in day 2.jpg', 'sadasd', 100.00, 0, '2026-01-23 22:27:55', 'Pending', '2026-01-23 14:26:57');
 
 -- --------------------------------------------------------
 
@@ -193,6 +370,7 @@ CREATE TABLE `trips` (
 CREATE TABLE `trip_costs` (
   `id` int(11) NOT NULL,
   `trip_id` int(11) NOT NULL,
+  `vehicle_id` int(11) NOT NULL,
   `fuel_cost` decimal(10,2) DEFAULT 0.00,
   `labor_cost` decimal(10,2) DEFAULT 0.00,
   `tolls_cost` decimal(10,2) DEFAULT 0.00,
@@ -200,6 +378,32 @@ CREATE TABLE `trip_costs` (
   `total_cost` decimal(10,2) GENERATED ALWAYS AS (`fuel_cost` + `labor_cost` + `tolls_cost` + `other_cost`) STORED,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trip_costs`
+--
+
+INSERT INTO `trip_costs` (`id`, `trip_id`, `vehicle_id`, `fuel_cost`, `labor_cost`, `tolls_cost`, `other_cost`, `created_at`) VALUES
+(1, 3, 3, 1250.75, 500.00, 450.00, 100.00, '2026-01-22 06:42:01'),
+(5, 5, 1, 850.00, 300.00, 150.00, 50.00, '2026-01-22 06:42:01'),
+(6, 6, 3, 1500.50, 600.00, 300.00, 0.00, '2026-01-22 06:42:01'),
+(7, 7, 2, 700.00, 250.00, 80.00, 25.00, '2026-01-22 06:42:01'),
+(8, 8, 5, 2800.00, 1000.00, 500.00, 150.00, '2026-01-22 06:42:01'),
+(9, 9, 1, 950.25, 400.00, 200.00, 75.00, '2026-01-22 06:42:01'),
+(10, 10, 3, 1300.00, 550.00, 100.00, 0.00, '2026-01-22 06:42:01'),
+(11, 11, 2, 800.75, 350.00, 120.00, 0.00, '2026-01-22 06:42:01'),
+(12, 12, 5, 3200.00, 1200.00, 650.00, 200.00, '2026-01-22 06:42:01'),
+(13, 13, 1, 900.00, 380.00, 180.00, 40.00, '2026-01-22 06:42:01'),
+(14, 14, 3, 1450.50, 580.00, 250.00, 60.00, '2026-01-22 06:42:01'),
+(15, 15, 6, 250.00, 150.00, 50.00, 10.00, '2026-01-22 06:42:01'),
+(16, 16, 1, 1100.00, 450.00, 400.00, 100.00, '2026-01-22 06:42:01'),
+(17, 17, 5, 2500.00, 900.00, 300.00, 50.00, '2026-01-22 06:42:01'),
+(18, 18, 3, 1800.00, 700.00, 800.00, 120.00, '2026-01-22 06:42:01'),
+(19, 19, 2, 750.00, 300.00, 100.00, 0.00, '2026-01-22 06:42:01'),
+(20, 20, 1, 1000.00, 400.00, 150.00, 0.00, '2026-01-22 06:42:01'),
+(21, 2, 1, 200.00, 710.00, 100.00, 0.00, '2026-01-23 14:09:53'),
+(23, 30, 5, 555.00, 200.00, 200.00, 0.00, '2026-01-23 14:24:55'),
+(24, 34, 5, 2000.00, 300.00, 300.00, 0.00, '2026-01-23 14:28:02');
 
 -- --------------------------------------------------------
 
@@ -222,11 +426,14 @@ CREATE TABLE `usage_logs` (
 --
 
 INSERT INTO `usage_logs` (`id`, `vehicle_id`, `log_date`, `metrics`, `fuel_usage`, `mileage`, `created_at`) VALUES
-(1, 1, '2025-09-19', 'Daily Checkup', 25.50, 150234, '2025-09-19 18:12:45'),
-(2, 2, '2025-09-19', 'Delivery to Makati', 15.20, 89765, '2025-09-19 18:12:45'),
-(3, 3, '2025-09-18', 'Pre-maintenance check', 5.00, 120450, '2025-09-19 18:13:21'),
-(4, 1, '2025-09-18', 'Delivery to Pasig', 22.00, 150110, '2025-09-19 18:13:21'),
-(5, 2, '2025-09-17', 'City Driving', 18.70, 89650, '2025-09-19 18:14:01');
+(1, 1, '2025-10-26', 'Completed 3 short trips', 55.50, 250, '2025-10-27 02:00:00'),
+(2, 2, '2025-10-26', 'City driving for deliveries', 30.20, 150, '2025-10-27 02:01:00'),
+(3, 3, '2025-10-20', 'Long-haul to Laguna', 85.00, 450, '2025-10-20 02:02:00'),
+(4, 5, '2025-10-13', 'Multiple stops in Ortigas', 45.70, 180, '2025-10-13 02:03:00'),
+(5, 1, '2026-01-23', 'Long Haul', 0.00, 100, '2026-01-23 14:09:01'),
+(6, 1, '2026-01-23', 'City driving', 0.00, 90, '2026-01-23 14:13:02'),
+(7, 5, '2026-01-23', 'City driving', 0.00, 400, '2026-01-23 14:24:39'),
+(8, 5, '2026-01-23', 'Long Haul', 0.00, 100, '2026-01-23 14:27:55');
 
 -- --------------------------------------------------------
 
@@ -242,8 +449,7 @@ CREATE TABLE `users` (
   `role` enum('admin','staff','driver') NOT NULL DEFAULT 'staff',
   `failed_login_attempts` int(11) DEFAULT 0,
   `lockout_until` datetime DEFAULT NULL,
-  `otp_code` varchar(6) DEFAULT NULL,
-  `otp_expires_at` datetime DEFAULT NULL,
+  `employee_id` varchar(100) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -251,10 +457,15 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `email`, `password`, `role`) VALUES
-(1, 'admin', 'admin@example.com', '$2y$10$R9c1Y.h3.qg8s/j3qZ8TLOz.jC6G2/aW1zE.V3s.U5N3h3.v4.v1.', 'admin'),
-(2, 'jcruz', 'jcruz@example.com', '$2y$10$Y8.PAe5r9GgBvLW3f.2LHu0G8iE4Hk.cjgSxmmW.x8uJ5Q.FLWvJ.', 'driver'),
-(3, 'stan', 'stan@example.com', '$2y$10$wF.5bK/3g20K.a4i6G/pFOaYd3u.L9eI03gC.1n8L3b2J/4i3b.B.', 'driver');
+INSERT INTO `users` (`id`, `username`, `email`, `password`, `role`, `failed_login_attempts`, `lockout_until`, `employee_id`, `created_at`) VALUES
+(1, 'admin', 'akoposirenel@gmail.com', '$2y$10$bB08RT74VpNQJ27RmW9aJeKPklwE74yU4EOruiRnoRq7eRwdLr.xa', 'admin', 0, NULL, 'SLATE-001', '2025-10-26 17:00:00'),
+(2, 'staff', 'johnmaurel69@gmail.com', '$2y$10$P0YZ7//C9dQW4xomJcsS7.uICuP/JQkWFWHrw3SPeYzJccgBqtyQ6', 'staff', 0, NULL, 'SLATE-002', '2025-10-26 17:00:00'),
+(3, 'driver_john', 'badongiza@gmail.com', '$2y$10$NgryLlzA5gBbHqP0FE6RtuoYOdBvfc.veg.2KHTuWaVrEv6yJMEHq', 'driver', 0, NULL, 'SLATE-003', '2025-10-26 17:01:00'),
+(4, 'driver_jane', 'janesmith@email.com', '$2y$10$E.4a4/yLp2F.1rD.2n9R1e/U/Q.Da/3n29n4i.eJ.s2Q4.sW6w8.m', 'driver', 0, NULL, 'SLATE-004', '2025-10-26 17:02:00'),
+(5, 'driver_peter', 'peterjones@email.com', '$2y$10$E.4a4/yLp2F.1rD.2n9R1e/U/Q.Da/3n29n4i.eJ.s2Q4.sW6w8.m', 'driver', 0, NULL, 'SLATE-005', '2025-10-26 17:03:00'),
+(6, 'vehicle_ELF001', 'vehicle_elf001@slate.com', '$2y$10$E.4a4/yLp2F.1rD.2n9R1e/U/Q.Da/3n29n4i.eJ.s2Q4.sW6w8.m', 'driver', 0, NULL, 'SLATE-V01', '2025-10-26 17:04:00'),
+(7, 'vehicle_HIA002', 'vehicle_hia002@slate.com', '$2y$10$E.4a4/yLp2F.1rD.2n9R1e/U/Q.Da/3n29n4i.eJ.s2Q4.sW6w8.m', 'driver', 0, NULL, 'SLATE-V02', '2025-10-26 17:05:00'),
+(8, 'pending_driver', 'newdriver@email.com', '$2y$10$E.4a4/yLp2F.1rD.2n9R1e/U/Q.Da/3n29n4i.eJ.s2Q4.sW6w8.m', 'driver', 0, NULL, 'SLATE-008', '2025-10-26 17:06:00');
 
 -- --------------------------------------------------------
 
@@ -280,92 +491,323 @@ CREATE TABLE `vehicles` (
 -- Dumping data for table `vehicles`
 --
 
-INSERT INTO `vehicles` (`id`, `type`, `model`, `tag_type`, `tag_code`, `load_capacity_kg`, `plate_no`, `status`, `assigned_driver_id`, `image_url`) VALUES
-(1, 'Truck', 'Isuzu Elf', 'RFID', 'RF12345', 10000, 'ABC-1234', 'Active', 1, NULL),
-(2, 'Van', 'Toyota Hiace', 'Barcode', 'BC67890', 5000, 'DEF-5678', 'Active', NULL, NULL),
-(3, 'Container Truck', 'Volvo FH16', 'RFID', 'RF-CT-001', 25000, 'PQR-1122', 'Active', NULL, NULL),
-(4, 'Trailer Truck', 'Scania R730', 'Barcode', 'BC-TT-002', 30000, 'STU-3344', 'Active', NULL, NULL),
-(5, 'Truck', 'Fuso Canter', 'RFID', 'RF54321', 12000, 'MNO-7890', 'Maintenance', 1, NULL),
-(6, 'Box Truck', 'Hino 500', 'QR Code', 'QR-BT-003', 15000, 'VWX-5566', 'Active', NULL, NULL);
+INSERT INTO `vehicles` (`id`, `type`, `model`, `tag_type`, `tag_code`, `load_capacity_kg`, `plate_no`, `status`, `assigned_driver_id`, `image_url`, `created_at`) VALUES
+(1, 'Light-Duty Truck', 'Isuzu Elf NPR', 'RFID', 'ELF001', 4500, 'ABC-1234', 'Active', 1, 'elf.PNG', '2025-10-26 20:01:00'),
+(2, 'Van', 'Toyota Hiace', 'RFID', 'HIA002', 1200, 'DEF-5678', 'En Route', 2, 'hiace.PNG', '2025-10-26 20:02:00'),
+(3, '4-Wheeler Truck', 'Mitsubishi Fuso Canter', 'RFID', 'CAN003', 4000, 'GHI-9012', 'Idle', 5, 'canter.PNG', '2025-10-26 20:03:00'),
+(4, 'Light-Duty Truck', 'Isuzu Elf NKR', 'RFID', 'ELF004', 4200, 'JKL-3456', 'Maintenance', NULL, 'elf.PNG', '2025-10-26 20:04:00'),
+(5, '6-Wheeler Truck', 'Hino 300', 'RFID', 'HIN005', 7500, 'MNO-7890', 'Active', NULL, NULL, '2025-10-26 20:05:00'),
+(6, 'Motorcycle', 'Honda Click 150i', 'RFID', 'MOT006', 150, 'PQR-123', 'Active', NULL, NULL, '2025-10-26 20:06:00');
 
 --
 -- Indexes for dumped tables
 --
 
-ALTER TABLE `alerts` ADD PRIMARY KEY (`id`), ADD KEY `trip_id` (`trip_id`), ADD KEY `driver_id` (`driver_id`);
-ALTER TABLE `drivers` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `license_number` (`license_number`), ADD KEY `user_id` (`user_id`);
-ALTER TABLE `maintenance_approvals` ADD PRIMARY KEY (`id`), ADD KEY `vehicle_id` (`vehicle_id`);
-ALTER TABLE `messages` ADD PRIMARY KEY (`id`), ADD KEY `sender_id` (`sender_id`), ADD KEY `receiver_id` (`receiver_id`);
-ALTER TABLE `password_resets` ADD PRIMARY KEY (`id`), ADD KEY `user_id` (`user_id`);
-ALTER TABLE `reservations` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `reservation_code` (`reservation_code`), ADD KEY `vehicle_id` (`vehicle_id`), ADD KEY `reserved_by_user_id` (`reserved_by_user_id`);
-ALTER TABLE `routes` ADD PRIMARY KEY (`id`), ADD KEY `trip_id` (`trip_id`);
-ALTER TABLE `tracking_log` ADD PRIMARY KEY (`id`), ADD KEY `trip_id` (`trip_id`);
-ALTER TABLE `trips` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `trip_code` (`trip_code`), ADD KEY `vehicle_id` (`vehicle_id`), ADD KEY `driver_id` (`driver_id`);
-ALTER TABLE `trip_costs` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `trip_id` (`trip_id`);
-ALTER TABLE `usage_logs` ADD PRIMARY KEY (`id`), ADD KEY `vehicle_id` (`vehicle_id`);
-ALTER TABLE `users` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `username` (`username`), ADD UNIQUE KEY `email` (`email`);
-ALTER TABLE `vehicles` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `tag_code` (`tag_code`), ADD UNIQUE KEY `plate_no` (`plate_no`), ADD KEY `assigned_driver_id` (`assigned_driver_id`);
+--
+-- Indexes for table `alerts`
+--
+ALTER TABLE `alerts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `trip_id` (`trip_id`),
+  ADD KEY `driver_id` (`driver_id`);
+
+--
+-- Indexes for table `budgets`
+--
+ALTER TABLE `budgets`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `drivers`
+--
+ALTER TABLE `drivers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `license_number` (`license_number`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `driver_behavior_logs`
+--
+ALTER TABLE `driver_behavior_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `driver_id` (`driver_id`),
+  ADD KEY `trip_id` (`trip_id`);
+
+--
+-- Indexes for table `events`
+--
+ALTER TABLE `events`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `expenses`
+--
+ALTER TABLE `expenses`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `maintenance_approvals`
+--
+ALTER TABLE `maintenance_approvals`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `vehicle_id` (`vehicle_id`);
+
+--
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `sender_id` (`sender_id`),
+  ADD KEY `receiver_id` (`receiver_id`);
+
+--
+-- Indexes for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `reservations`
+--
+ALTER TABLE `reservations`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `reservation_code` (`reservation_code`),
+  ADD KEY `vehicle_id` (`vehicle_id`),
+  ADD KEY `reserved_by_user_id` (`reserved_by_user_id`);
+
+--
+-- Indexes for table `tracking_log`
+--
+ALTER TABLE `tracking_log`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `trip_id` (`trip_id`);
+
+--
+-- Indexes for table `trips`
+--
+ALTER TABLE `trips`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `trip_code` (`trip_code`),
+  ADD KEY `vehicle_id` (`vehicle_id`),
+  ADD KEY `driver_id` (`driver_id`),
+  ADD KEY `reservation_id` (`reservation_id`);
+
+--
+-- Indexes for table `trip_costs`
+--
+ALTER TABLE `trip_costs`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `trip_id` (`trip_id`),
+  ADD KEY `vehicle_id` (`vehicle_id`);
+
+--
+-- Indexes for table `usage_logs`
+--
+ALTER TABLE `usage_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `vehicle_id` (`vehicle_id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `employee_id` (`employee_id`);
+
+--
+-- Indexes for table `vehicles`
+--
+ALTER TABLE `vehicles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `tag_code` (`tag_code`),
+  ADD UNIQUE KEY `plate_no` (`plate_no`),
+  ADD KEY `assigned_driver_id` (`assigned_driver_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
 --
 
-ALTER TABLE `alerts` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `drivers` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-ALTER TABLE `maintenance_approvals` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-ALTER TABLE `messages` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `password_resets` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `reservations` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `routes` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `tracking_log` MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `trips` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `trip_costs` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `usage_logs` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-ALTER TABLE `users` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-ALTER TABLE `vehicles` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+--
+-- AUTO_INCREMENT for table `alerts`
+--
+ALTER TABLE `alerts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `budgets`
+--
+ALTER TABLE `budgets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `drivers`
+--
+ALTER TABLE `drivers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `driver_behavior_logs`
+--
+ALTER TABLE `driver_behavior_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `events`
+--
+ALTER TABLE `events`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `expenses`
+--
+ALTER TABLE `expenses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `maintenance_approvals`
+--
+ALTER TABLE `maintenance_approvals`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `reservations`
+--
+ALTER TABLE `reservations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `tracking_log`
+--
+ALTER TABLE `tracking_log`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT for table `trips`
+--
+ALTER TABLE `trips`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+
+--
+-- AUTO_INCREMENT for table `trip_costs`
+--
+ALTER TABLE `trip_costs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
+-- AUTO_INCREMENT for table `usage_logs`
+--
+ALTER TABLE `usage_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT for table `vehicles`
+--
+ALTER TABLE `vehicles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables
 --
 
+--
+-- Constraints for table `alerts`
+--
 ALTER TABLE `alerts`
-  ADD CONSTRAINT `alerts_ibfk_1` FOREIGN KEY (`trip_id`) REFERENCES `trips` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `alerts_ibfk_2` FOREIGN KEY (`driver_id`) REFERENCES `drivers` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `alerts_ibfk_1` FOREIGN KEY (`trip_id`) REFERENCES `trips` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `alerts_ibfk_2` FOREIGN KEY (`driver_id`) REFERENCES `drivers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
+--
+-- Constraints for table `drivers`
+--
 ALTER TABLE `drivers`
-  ADD CONSTRAINT `drivers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `drivers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
+--
+-- Constraints for table `driver_behavior_logs`
+--
+ALTER TABLE `driver_behavior_logs`
+  ADD CONSTRAINT `driver_behavior_logs_ibfk_1` FOREIGN KEY (`driver_id`) REFERENCES `drivers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `driver_behavior_logs_ibfk_2` FOREIGN KEY (`trip_id`) REFERENCES `trips` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `maintenance_approvals`
+--
 ALTER TABLE `maintenance_approvals`
-  ADD CONSTRAINT `maintenance_approvals_ibfk_1` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `maintenance_approvals_ibfk_1` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+--
+-- Constraints for table `messages`
+--
 ALTER TABLE `messages`
-  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+--
+-- Constraints for table `password_resets`
+--
 ALTER TABLE `password_resets`
-  ADD CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+--
+-- Constraints for table `reservations`
+--
 ALTER TABLE `reservations`
-  ADD CONSTRAINT `reservations_ibfk_1` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`),
-  ADD CONSTRAINT `reservations_ibfk_2` FOREIGN KEY (`reserved_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `reservations_ibfk_2` FOREIGN KEY (`reserved_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE `routes`
-  ADD CONSTRAINT `routes_ibfk_1` FOREIGN KEY (`trip_id`) REFERENCES `trips` (`id`) ON DELETE SET NULL;
-
+--
+-- Constraints for table `tracking_log`
+--
 ALTER TABLE `tracking_log`
-  ADD CONSTRAINT `tracking_log_ibfk_1` FOREIGN KEY (`trip_id`) REFERENCES `trips` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `tracking_log_ibfk_1` FOREIGN KEY (`trip_id`) REFERENCES `trips` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+--
+-- Constraints for table `trips`
+--
 ALTER TABLE `trips`
-  ADD CONSTRAINT `trips_ibfk_1` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`),
-  ADD CONSTRAINT `trips_ibfk_2` FOREIGN KEY (`driver_id`) REFERENCES `drivers` (`id`);
+  ADD CONSTRAINT `trips_ibfk_2` FOREIGN KEY (`driver_id`) REFERENCES `drivers` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `trips_ibfk_3` FOREIGN KEY (`reservation_id`) REFERENCES `reservations` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
+--
+-- Constraints for table `trip_costs`
+--
 ALTER TABLE `trip_costs`
-  ADD CONSTRAINT `trip_costs_ibfk_1` FOREIGN KEY (`trip_id`) REFERENCES `trips` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `trip_costs_ibfk_1` FOREIGN KEY (`trip_id`) REFERENCES `trips` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `trip_costs_ibfk_2` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`) ON UPDATE CASCADE;
 
+--
+-- Constraints for table `usage_logs`
+--
 ALTER TABLE `usage_logs`
-  ADD CONSTRAINT `usage_logs_ibfk_1` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `usage_logs_ibfk_1` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+--
+-- Constraints for table `vehicles`
+--
 ALTER TABLE `vehicles`
-  ADD CONSTRAINT `vehicles_ibfk_1` FOREIGN KEY (`assigned_driver_id`) REFERENCES `drivers` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `vehicles_ibfk_1` FOREIGN KEY (`assigned_driver_id`) REFERENCES `drivers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
