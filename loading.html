@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLATE | Loading Intelligence</title>
+    <!-- Use Google Fonts for a more premium look -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --accent: #5e00ff;
+            --bg: #030712;
+            --glass: rgba(17, 24, 39, 0.75);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Ambient Background */
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(94, 0, 255, 0.05) 0%, transparent 70%),
+                url('assets/images/loading_bg_v2.png') center/cover no-repeat;
+            z-index: -1;
+            opacity: 0.8;
+            filter: brightness(0.7);
+        }
+
+        /* High-End Glassmorph Container */
+        .main-stage {
+            width: 500px;
+            padding: 4rem;
+            background: var(--glass);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.8),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Animated Glowing Ring */
+        .loader-ring {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 2.5rem;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loader-ring::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid transparent;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite;
+        }
+
+        .loader-ring::after {
+            content: '';
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border: 2px solid transparent;
+            border-bottom-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1.5s cubic-bezier(0.55, 0.055, 0.675, 0.19) reverse infinite;
+        }
+
+        .logo-img {
+            width: 60px;
+            height: auto;
+            position: relative;
+            z-index: 11;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.5));
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Data Readout */
+        .data-readout {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 2rem;
+            min-height: 1.2rem;
+            opacity: 0.7;
+            text-shadow: 0 0 8px rgba(0, 242, 255, 0.3);
+        }
+
+        /* Premium Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            box-shadow: 0 0 20px var(--primary);
+            border-radius: 10px;
+            transition: width 0.4s ease-out;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .percent-val {
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Floating Light Leaks */
+        .light-leak {
+            position: fixed;
+            width: 60vw;
+            height: 60vh;
+            background: radial-gradient(circle, rgba(94, 0, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 1;
+            filter: blur(100px);
+            pointer-events: none;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(-10%, -10%);
+            }
+
+            100% {
+                transform: translate(10%, 10%);
+            }
+        }
+
+        /* Footer */
+        .version-tag {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.2);
+            margin-top: 3rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-overlay"></div>
+    <div class="light-leak"></div>
+    <div class="light-leak" style="bottom: -10%; right: -10%; animation-delay: -5s;"></div>
+
+    <div class="main-stage">
+        <div class="loader-ring">
+            <img src="assets/images/logo.png" class="logo-img" alt="SLATE">
+        </div>
+
+        <div class="data-readout" id="status-update">INITIALIZING CORE...</div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progress-bar"></div>
+        </div>
+
+        <div class="progress-meta">
+            <span>SECURE LINK</span>
+            <span class="percent-val" id="percent-text">00%</span>
+        </div>
+
+        <div class="version-tag">SLATE FREIGHT MANAGEMENT © 2026</div>
+    </div>
+
+    <script>
+        const progressBar = document.getElementById('progress-bar');
+        const percentText = document.getElementById('percent-text');
+        const statusUpdate = document.getElementById('status-update');
+
+        const logs = [
+            "Initializing secure protocols...",
+            "Connecting to fleet telemetry...",
+            "Encrypting logistics matrix...",
+            "Synchronizing route data...",
+            "Optimizing predictive algorithms...",
+            "Establishing neural link...",
+            "Finalizing authentication...",
+            "Access granted. Entering SLATE."
+        ];
+
+        let progress = 0;
+        let logStep = 0;
+
+        function updateLoader() {
+            if (progress >= 100) {
+                progress = 100;
+                progressBar.style.width = '100%';
+                percentText.textContent = '100%';
+                statusUpdate.textContent = logs[logs.length - 1];
+                statusUpdate.style.color = '#00ffaa';
+
+                // Final Smooth Redirect
+                setTimeout(() => {
+                    document.body.style.opacity = '0';
+                    document.body.style.transition = 'opacity 1s cubic-bezier(0.4, 0, 0.2, 1)';
+                    setTimeout(() => {
+                        // Use a relative path from the current directory
+                        window.location.href = '/Code/auth/login.php';
+                    }, 1000);
+                }, 1200);
+                return;
+            }
+
+            // Pseudo-random progress for natural feel
+            progress += Math.random() * 4 + 0.5;
+            if (progress > 100) progress = 100;
+
+            progressBar.style.width = `${progress}%`;
+            percentText.textContent = `${Math.floor(progress).toString().padStart(2, '0')}%`;
+
+            // Change logs based on progress thresholds
+            const currentLogStep = Math.floor((progress / 100) * (logs.length - 1));
+            if (currentLogStep > logStep) {
+                logStep = currentLogStep;
+                statusUpdate.style.opacity = '0';
+                setTimeout(() => {
+                    statusUpdate.textContent = logs[logStep];
+                    statusUpdate.style.opacity = '0.7';
+                }, 150);
+            }
+
+            setTimeout(updateLoader, Math.random() * 200 + 50);
+        }
+
+        window.onload = () => {
+            setTimeout(updateLoader, 800);
+        };
+    </script>
+</body>
+
+</html>
